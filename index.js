@@ -1,18 +1,30 @@
 const express = require('express');
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client } = require('whatsapp-web.js');
+const SessionManager = require('./database');
 const qrcode = require('qrcode-terminal');
 const bodyParser = require('body-parser');
 
 const app = express();
 app.use(bodyParser.json());
 
-// تهيئة عميل واتساب مع حفظ الجلسة محلياً
+// تهيئة عميل واتساب مع حفظ الجلسة في قاعدة البيانات
+const { LocalAuth } = require('whatsapp-web.js');
+
 const client = new Client({
-    authStrategy: new LocalAuth(),
+    authStrategy: new LocalAuth({
+        clientId: 'whatsapp-bot',
+        dataPath: './sessions'
+    }),
     puppeteer: {
         args: ['--no-sandbox']
     }
 });
+
+// تنظيف الجلسات القديمة كل 24 ساعة
+setInterval(() => {
+    SessionManager.cleanOldSessions()
+        .catch(err => console.error('خطأ في تنظيف الجلسات القديمة:', err));
+}, 24 * 60 * 60 * 1000);
 
 // متغير لتخزين حالة الاتصال
 let isClientReady = false;
