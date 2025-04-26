@@ -16,7 +16,18 @@ const client = new Client({
         dataPath: './sessions'
     }),
     puppeteer: {
-        args: ['--no-sandbox']
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: true,
+        timeout: 60000,
+        browserArgs: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-gpu'
+        ]
     }
 });
 
@@ -76,9 +87,30 @@ app.post('/send', async (req, res) => {
             return res.status(404).json({ error: 'رقم الهاتف غير مسجل في واتساب' });
         }
 
-        // إرسال الرسالة
-        await client.sendMessage(chatId, message);
-        res.json({ success: true, message: 'تم إرسال الرسالة بنجاح' });
+        // إرسال الرسالة مع إعادة المحاولة
+        let retries = 3;
+        let success = false;
+        let lastError;
+
+        while (retries > 0 && !success) {
+            try {
+                await client.sendMessage(chatId, message);
+                success = true;
+                res.json({ success: true, message: 'تم إرسال الرسالة بنجاح' });
+            } catch (err) {
+                lastError = err;
+                retries--;
+                if (retries > 0) {
+                    // انتظر قبل إعادة المحاولة
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+            }
+        }
+
+        if (!success) {
+            console.error('فشل في إرسال الرسالة بعد عدة محاولات:', lastError);
+            res.status(500).json({ error: 'فشل في إرسال الرسالة بعد عدة محاولات' });
+        }
 
     } catch (error) {
         console.error('Error sending message:', error);

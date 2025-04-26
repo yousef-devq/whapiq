@@ -1,29 +1,27 @@
-2025/04/26-04:03:33.765 5998 Reusing MANIFEST C:\Projects\treawh\sessions\session-whatsapp-bot\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
-2025/04/26-04:03:33.765 5998 Recovering log #120
-2025/04/26-04:03:33.766 5998 Reusing old log C:\Projects\treawh\sessions\session-whatsapp-bot\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000120.log 
-2025/04/26-04:03:35.151 8628 Compacting 1@1 + 5@2 files
-2025/04/26-04:03:35.240 8628 Generated table #123@1: 26628 keys, 2186589 bytes
-2025/04/26-04:03:35.299 8628 Generated table #124@1: 3339 keys, 2150054 bytes
-2025/04/26-04:03:35.439 8628 Generated table #125@1: 17708 keys, 2189721 bytes
-2025/04/26-04:03:35.544 8628 Generated table #126@1: 42020 keys, 2206673 bytes
-2025/04/26-04:03:35.640 8628 Generated table #127@1: 65707 keys, 1498451 bytes
-2025/04/26-04:03:35.640 8628 Compacted 1@1 + 5@2 files => 10231488 bytes
-2025/04/26-04:03:35.641 8628 compacted to: files[ 0 0 5 0 0 0 0 ]
-2025/04/26-04:03:35.654 5998 Level-0 table #129: started
-2025/04/26-04:03:35.658 5998 Level-0 table #129: 14039 bytes OK
-2025/04/26-04:03:35.660 5998 Delete type=2 #114
-2025/04/26-04:03:35.660 5998 Delete type=2 #115
-2025/04/26-04:03:35.660 5998 Delete type=2 #116
-2025/04/26-04:03:35.660 5998 Delete type=2 #117
-2025/04/26-04:03:35.660 5998 Delete type=2 #118
-2025/04/26-04:03:35.660 5998 Delete type=0 #120
-2025/04/26-04:03:35.660 5998 Delete type=2 #121
-2025/04/26-04:03:35.663 5998 Manual compaction at level-0 from '\x00\x1b\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x1c\x00\x00\x00' @ 0 : 0; will stop at (end)
-2025/04/26-04:03:38.456 6ce4 Compacting 1@1 + 5@2 files
-2025/04/26-04:03:38.829 6ce4 Generated table #130@1: 26802 keys, 2185625 bytes
-2025/04/26-04:03:39.707 6ce4 Generated table #131@1: 3336 keys, 2149831 bytes
-2025/04/26-04:03:40.201 6ce4 Generated table #132@1: 17595 keys, 2189748 bytes
-2025/04/26-04:03:40.553 6ce4 Generated table #133@1: 41785 keys, 2205464 bytes
-2025/04/26-04:03:40.795 6ce4 Generated table #134@1: 66068 keys, 1506988 bytes
-2025/04/26-04:03:40.795 6ce4 Compacted 1@1 + 5@2 files => 10237656 bytes
-2025/04/26-04:03:40.816 6ce4 compacted to: files[ 0 0 5 0 0 0 0 ]
+2025/04/26-04:20:22.149 8408 Reusing MANIFEST C:\Projects\treawh\sessions\session-whatsapp-bot\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/04/26-04:20:22.149 8408 Recovering log #128
+2025/04/26-04:20:22.173 8408 Reusing old log C:\Projects\treawh\sessions\session-whatsapp-bot\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000128.log 
+2025/04/26-04:20:22.173 8408 Delete type=2 #123
+2025/04/26-04:20:22.173 8408 Delete type=2 #124
+2025/04/26-04:20:22.173 8408 Delete type=2 #125
+2025/04/26-04:20:22.173 8408 Delete type=2 #126
+2025/04/26-04:20:22.173 8408 Delete type=2 #127
+2025/04/26-04:20:22.173 8408 Delete type=2 #129
+2025/04/26-04:20:26.011 d3c Level-0 table #137: started
+2025/04/26-04:20:26.020 d3c Level-0 table #137: 144034 bytes OK
+2025/04/26-04:20:26.023 d3c Delete type=0 #128
+2025/04/26-04:20:26.024 d3c Manual compaction at level-0 from '\x00\x1c\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x1d\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/04/26-04:20:27.923 6914 Compacting 1@1 + 5@2 files
+2025/04/26-04:20:28.006 6914 Generated table #138@1: 28018 keys, 2186889 bytes
+2025/04/26-04:20:28.056 6914 Generated table #139@1: 3325 keys, 2150717 bytes
+2025/04/26-04:20:28.146 6914 Generated table #140@1: 17333 keys, 2188473 bytes
+2025/04/26-04:20:28.241 6914 Generated table #141@1: 41173 keys, 2205115 bytes
+2025/04/26-04:20:28.338 6914 Generated table #142@1: 66959 keys, 1528951 bytes
+2025/04/26-04:20:28.338 6914 Compacted 1@1 + 5@2 files => 10260145 bytes
+2025/04/26-04:20:28.339 6914 compacted to: files[ 0 0 5 0 0 0 0 ]
+2025/04/26-04:20:28.340 6914 Delete type=2 #130
+2025/04/26-04:20:28.340 6914 Delete type=2 #131
+2025/04/26-04:20:28.340 6914 Delete type=2 #132
+2025/04/26-04:20:28.340 6914 Delete type=2 #133
+2025/04/26-04:20:28.340 6914 Delete type=2 #134
+2025/04/26-04:20:28.340 6914 Delete type=2 #137
