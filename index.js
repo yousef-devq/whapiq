@@ -1,6 +1,6 @@
 const express = require('express');
 const { Client } = require('whatsapp-web.js');
-const SessionManager = require('./database');
+const StorageManager = require('./storage');
 const qrcode = require('qrcode-terminal');
 const bodyParser = require('body-parser');
 
@@ -20,10 +20,10 @@ const client = new Client({
     }
 });
 
-// تنظيف الجلسات القديمة كل 24 ساعة
+// تنظيف البيانات القديمة كل 24 ساعة
 setInterval(() => {
-    SessionManager.cleanOldSessions()
-        .catch(err => console.error('خطأ في تنظيف الجلسات القديمة:', err));
+    StorageManager.cleanOldData()
+        .catch(err => console.error('خطأ في تنظيف البيانات القديمة:', err));
 }, 24 * 60 * 60 * 1000);
 
 // متغير لتخزين حالة الاتصال
