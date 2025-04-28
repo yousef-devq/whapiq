@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const { Client } = require('whatsapp-web.js');
 const StorageManager = require('./storage');
@@ -6,6 +8,9 @@ const bodyParser = require('body-parser');
 
 const app = express();
 app.use(bodyParser.json());
+
+// تكوين المنفذ
+const PORT = process.env.PORT || 3000;
 
 // تهيئة عميل واتساب مع حفظ الجلسة في قاعدة البيانات
 const { LocalAuth } = require('whatsapp-web.js');
@@ -67,7 +72,24 @@ client.on('disconnected', async (reason) => {
 });
 
 // بدء تشغيل العميل
-client.initialize();
+client.initialize().catch(err => {
+    console.error('فشل في تهيئة العميل:', err);
+    process.exit(1);
+});
+
+// معالجة الأخطاء غير المتوقعة
+process.on('uncaughtException', (err) => {
+    console.error('خطأ غير متوقع:', err);
+});
+
+process.on('unhandledRejection', (err) => {
+    console.error('وعد مرفوض غير معالج:', err);
+});
+
+// تشغيل الخادم
+app.listen(PORT, () => {
+    console.log(`الخادم يعمل على المنفذ ${PORT}`);
+});
 
 // التحقق من صحة رقم الهاتف
 function isValidPhoneNumber(number) {
