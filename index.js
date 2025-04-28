@@ -1,10 +1,10 @@
 require('dotenv').config();
 
 const express = require('express');
-const { Client } = require('whatsapp-web.js');
-const StorageManager = require('./storage');
+const { default: makeWASocket, DisconnectReason, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
 const bodyParser = require('body-parser');
+const path = require('path');
 
 const app = express();
 app.use(bodyParser.json());
@@ -12,68 +12,45 @@ app.use(bodyParser.json());
 // تكوين المنفذ
 const PORT = process.env.PORT || 3000;
 
-// تهيئة عميل واتساب مع حفظ الجلسة في قاعدة البيانات
-const { LocalAuth } = require('whatsapp-web.js');
-
-const client = new Client({
-    authStrategy: new LocalAuth({
-        clientId: 'whatsapp-bot',
-        dataPath: process.env.SESSIONS_PATH || './sessions'
-    }),
-    puppeteer: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        headless: true,
-        timeout: 60000,
-        browserArgs: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-accelerated-2d-canvas',
-            '--no-first-run',
-            '--no-zygote',
-            '--disable-gpu'
-        ]
-    }
-});
-
-// تنظيف البيانات القديمة كل 24 ساعة
-setInterval(() => {
-    StorageManager.cleanOldData()
-        .catch(err => console.error('خطأ في تنظيف البيانات القديمة:', err));
-}, 24 * 60 * 60 * 1000);
-
-// متغير لتخزين حالة الاتصال
+// تهيئة عميل واتساب
+let client = null;
 let isClientReady = false;
 
-// معالجة حدث QR code
-client.on('qr', (qr) => {
-    console.log('QR Code received:');
-    qrcode.generate(qr, { small: true });
-});
+async function connectToWhatsApp() {
+    const sessionsPath = path.resolve(process.env.SESSIONS_PATH || './sessions');
+    const { state, saveCreds } = await useMultiFileAuthState(sessionsPath);
 
-// معالجة حدث الجاهزية
-client.on('ready', () => {
-    console.log('Client is ready!');
-    isClientReady = true;
-});
+    client = makeWASocket({
+        auth: state,
+        printQRInTerminal: true,
+        defaultQueryTimeoutMs: 60000
+    });
 
-// معالجة حدث انقطاع الاتصال
-client.on('disconnected', async (reason) => {
-    console.log('تم قطع الاتصال:', reason);
-    isClientReady = false;
-    
-    // محاولة إعادة الاتصال
-    try {
-        console.log('جاري محاولة إعادة الاتصال...');
-        await client.initialize();
-    } catch (error) {
-        console.error('فشل في إعادة الاتصال:', error);
-    }
-});
+    client.ev.on('creds.update', saveCreds);
 
-// بدء تشغيل العميل
-client.initialize().catch(err => {
-    console.error('فشل في تهيئة العميل:', err);
+
+    client.ev.on('connection.update', async (update) => {
+        const { connection, lastDisconnect } = update;
+
+        if (connection === 'close') {
+            const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
+            console.log('اتصال مغلق بسبب:', lastDisconnect.error, '\nجاري إعادة الاتصال:', shouldReconnect);
+            
+            if (shouldReconnect) {
+                await connectToWhatsApp();
+            }
+        } else if (connection === 'open') {
+            console.log('تم الاتصال بنجاح!');
+            isClientReady = true;
+        }
+    });
+
+    return client;
+}
+
+// بدء الاتصال
+connectToWhatsApp().catch(err => {
+    console.error('فشل في الاتصال:', err);
     process.exit(1);
 });
 
@@ -102,24 +79,24 @@ app.post('/send', async (req, res) => {
     try {
         const { number, message } = req.body;
 
-        if (!isClientReady) {
-            return res.status(503).json({ error: 'WhatsApp client not ready. Please scan QR code first.' });
+        if (!isClientReady || !client) {
+            return res.status(503).json({ error: 'عميل واتساب غير جاهز. يرجى مسح رمز QR أولاً' });
         }
 
         if (!number || !message) {
-            return res.status(400).json({ error: 'Number and message are required.' });
+            return res.status(400).json({ error: 'الرقم والرسالة مطلوبان' });
         }
 
         if (!isValidPhoneNumber(number)) {
-            return res.status(400).json({ error: 'Invalid phone number format. Use international format (e.g., +46701234567).' });
+            return res.status(400).json({ error: 'تنسيق رقم الهاتف غير صالح. استخدم التنسيق الدولي (مثال: +46701234567)' });
         }
 
         // تنسيق رقم الهاتف لواتساب
-        const chatId = number.substring(1) + '@c.us';
+        const chatId = number.substring(1) + '@s.whatsapp.net';
 
         // التحقق من وجود الرقم على واتساب
-        const isRegistered = await client.isRegisteredUser(chatId);
-        if (!isRegistered) {
+        const [result] = await client.onWhatsApp(chatId);
+        if (!result?.exists) {
             return res.status(404).json({ error: 'رقم الهاتف غير مسجل في واتساب' });
         }
 
@@ -130,14 +107,13 @@ app.post('/send', async (req, res) => {
 
         while (retries > 0 && !success) {
             try {
-                await client.sendMessage(chatId, message);
+                await client.sendMessage(chatId, { text: message });
                 success = true;
                 res.json({ success: true, message: 'تم إرسال الرسالة بنجاح' });
             } catch (err) {
                 lastError = err;
                 retries--;
                 if (retries > 0) {
-                    // انتظر قبل إعادة المحاولة
                     await new Promise(resolve => setTimeout(resolve, 2000));
                 }
             }
@@ -159,7 +135,7 @@ app.post('/check-number', async (req, res) => {
     try {
         const { number } = req.body;
 
-        if (!isClientReady) {
+        if (!isClientReady || !client) {
             return res.status(503).json({ error: 'عميل واتساب غير جاهز. يرجى مسح رمز QR أولاً' });
         }
 
@@ -172,14 +148,14 @@ app.post('/check-number', async (req, res) => {
         }
 
         // تنسيق رقم الهاتف لواتساب
-        const chatId = number.substring(1) + '@c.us';
+        const chatId = number.substring(1) + '@s.whatsapp.net';
 
         // التحقق من وجود الرقم على واتساب
-        const isRegistered = await client.isRegisteredUser(chatId);
+        const [result] = await client.onWhatsApp(chatId);
 
         res.json({
             chatId: chatId,
-            isRegistered: isRegistered
+            isRegistered: result?.exists || false
         });
 
     } catch (error) {
