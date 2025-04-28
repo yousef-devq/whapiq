@@ -13,7 +13,7 @@ const { LocalAuth } = require('whatsapp-web.js');
 const client = new Client({
     authStrategy: new LocalAuth({
         clientId: 'whatsapp-bot',
-        dataPath: './sessions'
+        dataPath: process.env.SESSIONS_PATH || './sessions'
     }),
     puppeteer: {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -50,6 +50,20 @@ client.on('qr', (qr) => {
 client.on('ready', () => {
     console.log('Client is ready!');
     isClientReady = true;
+});
+
+// معالجة حدث انقطاع الاتصال
+client.on('disconnected', async (reason) => {
+    console.log('تم قطع الاتصال:', reason);
+    isClientReady = false;
+    
+    // محاولة إعادة الاتصال
+    try {
+        console.log('جاري محاولة إعادة الاتصال...');
+        await client.initialize();
+    } catch (error) {
+        console.error('فشل في إعادة الاتصال:', error);
+    }
 });
 
 // بدء تشغيل العميل
